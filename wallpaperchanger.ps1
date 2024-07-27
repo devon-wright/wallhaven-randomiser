@@ -1,6 +1,3 @@
-# URL of the website
-$url = "https://wallhaven.cc/search?categories=100&purity=100&atleast=2560x1440&sorting=random&order=desc"
-
 #########
 #OPTIONS, CHANGE THE ABOVE URL TO THE ONES BELOW
 #Presets:
@@ -24,11 +21,16 @@ $url = "https://wallhaven.cc/search?categories=100&purity=100&atleast=2560x1440&
 # 111 = general,anime,people
 # 011 = anime,people
 # 100 = just general
+$categoriesCode = "100"
 
 # &purity="100" explanation:
 # 100 = SFW
 # 110 = SFW AND NSFW
 # 010 = JUST NSFW
+$purityCode = "100"
+
+# URL of the website
+$url = "https://wallhaven.cc/search?categories=${categoriesCode}&purity=${purityCode}&atleast=2560x1440&sorting=random&order=desc"
 
 #########
 
@@ -41,7 +43,7 @@ $imagePath = "$env:TEMP\wallpaper.jpg"
 
 $failed = 0
 
-function DownloadImage(){
+function DownloadImage() {
     # Download the HTML content of the website
     $html = Invoke-WebRequest -Uri  $url -UseBasicParsing
 
@@ -105,6 +107,17 @@ function DownloadImage(){
     try {
         Invoke-WebRequest -Uri  $newUrl -OutFile $imagePath -UseBasicParsing
         $failed = 0
+
+        try {
+            # Save the filename to a file (create file if it doesn't exist)
+            $fileLocation = "./" # "./" Saves where the exe is run
+            $filePath = "${fileLocation}imageHistory.log"
+            $currDate = Get-Date -UFormat "%m-%d-%Y_%H-%M-%S" 
+            "[${currDate}] ${newURL}" | Out-File -FilePath $filePath -Append -Encoding utf8
+        }
+        catch {
+            Write-Error $_
+        }
     }
     catch {
 
@@ -115,9 +128,9 @@ function DownloadImage(){
 
 }
 
-    function SetImage() {
-        # Set the desktop background
-        Add-Type -TypeDefinition @"
+function SetImage() {
+    # Set the desktop background
+    Add-Type -TypeDefinition @"
     using System;
     using System.Runtime.InteropServices;
     public class Wallpaper {
@@ -126,14 +139,15 @@ function DownloadImage(){
     }
 "@
 
-        # Constants for SystemParametersInfo
-        $SPI_SETDESKWALLPAPER = 0x0014
-        $SPIF_UPDATEINIFILE = 0x01
-        $SPIF_SENDCHANGE = 0x02
+    # Constants for SystemParametersInfo
+    $SPI_SETDESKWALLPAPER = 0x0014
+    $SPIF_UPDATEINIFILE = 0x01
+    $SPIF_SENDCHANGE = 0x02
 
-        # Set the desktop background
-        [Wallpaper]::SystemParametersInfo($SPI_SETDESKWALLPAPER, 0, $imagePath, $SPIF_UPDATEINIFILE -bor $SPIF_SENDCHANGE)
-    }
+    # Set the desktop background
+    [Wallpaper]::SystemParametersInfo($SPI_SETDESKWALLPAPER, 0, $imagePath, $SPIF_UPDATEINIFILE -bor $SPIF_SENDCHANGE)
+
+}
 
 
 
