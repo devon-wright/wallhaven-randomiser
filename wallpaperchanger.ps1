@@ -21,16 +21,22 @@
 # 111 = general,anime,people
 # 011 = anime,people
 # 100 = just general
-$categoriesCode = "100"
+#$categoriesCode = "100"
 
 # &purity="100" explanation:
 # 100 = SFW
 # 110 = SFW AND NSFW
 # 010 = JUST NSFW
-$purityCode = "100"
+#$purityCode = "100"
+
+# Level of resolution minimum
+#$resolution = "2560x1440"
+
+# Parameters for script, defaults are overridden if exe called with values
+param($categoryType = "100", $purityType = "100", $resolutionLevel = "2560x1440", [Parameter(Mandatory = $false)]$logPath)
 
 # URL of the website
-$url = "https://wallhaven.cc/search?categories=${categoriesCode}&purity=${purityCode}&atleast=2560x1440&sorting=random&order=desc"
+$url = "https://wallhaven.cc/search?categories=${categoryType}&purity=${purityType}&atleast=${resolutionLevel}&sorting=random&order=desc"
 
 #########
 
@@ -107,16 +113,17 @@ function DownloadImage() {
     try {
         Invoke-WebRequest -Uri  $newUrl -OutFile $imagePath -UseBasicParsing
         $failed = 0
-
-        try {
-            # Save the filename to a file (create file if it doesn't exist)
-            $fileLocation = "./" # "./" Saves where the exe is run
-            $filePath = "${fileLocation}imageHistory.log"
-            $currDate = Get-Date -UFormat "%m-%d-%Y_%H-%M-%S" 
-            "[${currDate}] ${newURL}" | Out-File -FilePath $filePath -Append -Encoding utf8
-        }
-        catch {
-            Write-Error $_
+        
+        if ( $null -ne $logPath) {
+            try {
+                # Save the filename to a file (create file if it doesn't exist)
+                $filePath = "${logPath}\imageHistory.log"
+                $currDate = Get-Date -UFormat "%m-%d-%Y_%H-%M-%S" 
+                "[${currDate}] ${newURL}" | Out-File -FilePath $filePath -Append -Encoding utf8
+            }
+            catch {
+                Write-Error $_
+            }
         }
     }
     catch {
@@ -148,8 +155,6 @@ function SetImage() {
     [Wallpaper]::SystemParametersInfo($SPI_SETDESKWALLPAPER, 0, $imagePath, $SPIF_UPDATEINIFILE -bor $SPIF_SENDCHANGE)
 
 }
-
-
 
 #main
 DownloadImage
